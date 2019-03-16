@@ -1,0 +1,3 @@
+[submodule "HtmlConvert"]
+	path = HtmlConvert
+	url = https://github.com/dzienniczeksharp/HtmlConvert.git
