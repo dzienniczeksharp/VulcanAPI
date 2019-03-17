@@ -42,18 +42,26 @@ namespace VulcanAPI
     {
         public LoginConfig Login { get; }
         public UrlGenerator UrlGenerator { get; set; }
-        public List<RestResponseCookie> Cookies { get; set; }
+        public RestClient RestClient { get; } = new RestClient();
 
         public LoginService LoginService { get; }
         public DiaryService DiaryService { get; }
 
         public VulcanAccount(LoginConfig login)
         {
+            RestClient.CookieContainer = new CookieContainer();
             this.Login = login;
             UrlGenerator = new UrlGenerator(Login.Host, Login.BaseSymbol);
 
             LoginService = new LoginService(this);
             DiaryService = new DiaryService(this);
+        }
+
+        public void SwitchToSymbol(string symbol)
+        {
+            UrlGenerator.Symbol = symbol;
+            if (LoginService.CurrentSymbol != symbol)
+                LoginService.Login(Login.Email, Login.Password);
         }
 
         public List<Student.Student> Students { get; } = new List<Student.Student>();
@@ -89,7 +97,7 @@ namespace VulcanAPI
                     foreach (var diary in diares.Data)
                     {
                         if (!Students.Any(x => x.StudentId == diary.StudentId))
-                            Students.Add(new Student.Student(diary.StudentId, UrlGenerator.SchoolId, UrlGenerator.Symbol, diary.StudentName, diary.StudentLastName));
+                            Students.Add(new Student.Student(diary.StudentId, UrlGenerator.SchoolId, UrlGenerator.Symbol, diary.StudentName, diary.StudentLastName, diary));
                     }
                 }
             }

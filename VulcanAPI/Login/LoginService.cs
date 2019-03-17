@@ -2,18 +2,21 @@
 using RestSharp;
 using System;
 using System.Linq;
+using System.Net;
 
 namespace VulcanAPI.Login
 {
     public class LoginService : BaseService
     {
-        private string FirstStepReturnUrl { get; }
-
-        public LoginService(VulcanAccount vulcanAccount) : base(vulcanAccount)
-        {
-            var loginEndpoint = HtmlEntity.Entitize($"{vulcanAccount.UrlGenerator.Schema}://uonetplus.{vulcanAccount.UrlGenerator.Host}/{vulcanAccount.UrlGenerator.Symbol}/LoginEndpoint.aspx");
-            FirstStepReturnUrl = $"/{vulcanAccount.UrlGenerator.Symbol}/FS/LS?wa=wsignin1.0&wtrealm={loginEndpoint}&wctx={loginEndpoint}";
+        private string FirstStepReturnUrl {
+            get
+            {
+                var loginEndpoint = HtmlEntity.Entitize($"{Account.UrlGenerator.Schema}://uonetplus.{Account.UrlGenerator.Host}/{Account.UrlGenerator.Symbol}/LoginEndpoint.aspx");
+                return $"/{Account.UrlGenerator.Symbol}/FS/LS?wa=wsignin1.0&wtrealm={loginEndpoint}&wctx={loginEndpoint}";
+            }
         }
+
+        public LoginService(VulcanAccount vulcanAccount) : base(vulcanAccount) { }
 
         public void Login(string email, string password) => Login(email, password, out _, out _);
 
@@ -46,18 +49,22 @@ namespace VulcanAPI.Login
             }
         }
 
+        public string CurrentSymbol { get; set; }
+
         public SendCertificateResponse SendCertificate(CertificateResponse certificate)
         {
-            var client = new RestClient();
+            Account.RestClient.BaseUrl = null;
+            Account.RestClient.CookieContainer = new CookieContainer();
+
             var request = new RestRequest(certificate.Action, Method.POST);
             request.AddParameter("wa", certificate.Wa, ParameterType.GetOrPost);
             request.AddParameter("wresult", certificate.WresultRaw, ParameterType.GetOrPost);
             request.AddParameter("wctx", certificate.Wctx, ParameterType.GetOrPost);
 
-            var result = client.Execute(request);
+            var result = Account.RestClient.Execute(request);
             if (result.IsSuccessful)
             {
-                Account.Cookies = result.Cookies.ToList();
+                CurrentSymbol = Account.UrlGenerator.Symbol;
                 return HtmlConvert.HtmlConvert.DeserializeObject<SendCertificateResponse>(result.Content);
             }
             else

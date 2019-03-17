@@ -12,11 +12,12 @@ namespace VulcanAPI
         public bool SSL { get; set; }
         public string Schema => SSL ? "https" : "http";
 
-        public UrlGenerator(string host, string symbol, bool ssl = true)
+        public UrlGenerator(string host, string symbol, string schoolId = null, bool ssl = true)
         {
             Host = host;
             Symbol = symbol;
             SSL = ssl;
+            SchoolId = schoolId;
         }
 
         public enum Site

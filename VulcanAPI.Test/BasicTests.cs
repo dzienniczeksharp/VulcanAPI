@@ -21,8 +21,8 @@ namespace VulcanAPI.Test
 
         public static IEnumerable<object[]> GetLogins()
         {
-            yield return new object[] { new LoginConfig("fakelog.cf", "Default", "jan@fakelog.cf", "jan123", true) };
             yield return new object[] { JsonConvert.DeserializeObject<LoginConfig>(File.ReadAllText("config.json")) };
+            yield return new object[] { new LoginConfig("fakelog.cf", "Default", "jan@fakelog.cf", "jan123", true) };
         }
 
         [Theory]
@@ -43,7 +43,7 @@ namespace VulcanAPI.Test
 
         [Theory]
         [MemberData(nameof(GetLogins))]
-        public void SimpleUseTest(LoginConfig login)
+        public void StudentsTest(LoginConfig login)
         {
             var account = new VulcanAccount(login);
             account.InitializeStudents();
@@ -62,9 +62,23 @@ namespace VulcanAPI.Test
             {
                 var luckyNumber = school.GetLuckyNumber(account);
                 if(login.IsTestLog)
-                    Assert.Equal(luckyNumber, DateTime.Today.Day);
+                    Assert.Equal(DateTime.Now.Hour <= 7 ? -1 : DateTime.Today.Day, luckyNumber);
                 _output.WriteLine($"{school.SchoolSymbol} have lucky {luckyNumber} today");
             }
+        }
+
+        [Theory]
+        [MemberData(nameof(GetLogins))]
+        public void TimetableTest(LoginConfig login)
+        {
+            var account = new VulcanAccount(login);
+            account.InitializeStudents();
+
+            var timetable = account.Students[0].GetTimetable(account, DateTime.Today);
+
+            Assert.NotNull(timetable);
+            Assert.NotEmpty(timetable.Days);
+            Assert.NotEmpty(timetable.Days[0].Lessons);
         }
     }
 }

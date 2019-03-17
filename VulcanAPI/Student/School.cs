@@ -20,12 +20,10 @@ namespace VulcanAPI.Student
 
         public int GetLuckyNumber(VulcanAccount account)
         {
-            var client = new RestClient(new UrlGenerator(account.UrlGenerator.Host, SchoolSymbol).Generate(UrlGenerator.Site.HOME));
+            account.RestClient.BaseUrl = new Uri(new UrlGenerator(account.UrlGenerator.Host, SchoolSymbol).Generate(UrlGenerator.Site.HOME));
             var request = new RestRequest("Start.mvc/Index", Method.GET);
-            foreach (var cookie in account.Cookies)
-                request.AddCookie(cookie.Name, cookie.Value);
 
-            var result = client.Execute(request);
+            var result = account.RestClient.Execute(request);
             if (result.IsSuccessful)
             {
                 return HtmlConvert.HtmlConvert.DeserializeObject<LuckyNumberResponse>(result.Content).LuckyNumer;

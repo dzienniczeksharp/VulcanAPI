@@ -12,15 +12,13 @@ namespace VulcanAPI.Diary
 
         public ApiResponse<List<Diary>> GetDiares()
         {
-            var client = new RestClient(Account.UrlGenerator.Generate(UrlGenerator.Site.STUDENT));
+            Account.RestClient.BaseUrl = new Uri(Account.UrlGenerator.Generate(UrlGenerator.Site.STUDENT));
             var request = new RestRequest("UczenDziennik.mvc/Get", Method.GET);
-            foreach (var cookie in Account.Cookies)
-                request.AddCookie(cookie.Name, cookie.Value);
 
-            var result = client.Execute(request);
+            var result = Account.RestClient.Execute(request);
             if (result.IsSuccessful)
             {
-                return JsonConvert.DeserializeObject<ApiResponse<List<Diary>>>(client.Execute(request).Content);
+                return JsonConvert.DeserializeObject<ApiResponse<List<Diary>>>(result.Content);
             }
             else
             {
